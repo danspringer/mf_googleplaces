@@ -1,0 +1,20 @@
+# Alle hier gesetzten Werte können über $addon->getProperty($key) abgefragt werden
+
+package: mf_googleplaces
+version: '1.0'
+author: 'Medienfeuer, Daniel Springer'
+compile: 0
+
+page:
+  title: 'Google Places'
+  perm: mf_googleplaces[]
+  pjax: true
+  icon: rex-icon fa fa-map-marker
+  subpages:
+    info: { title: 'translate:mf_googleplaces_information' }
+    config: { title: 'translate:mf_googleplaces_config' }
+
+requires:
+    packages:
+    
+    redaxo: '>=5.7'
