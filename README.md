@@ -1,7 +1,7 @@
 # Google-Places AddOn für REDAXO 5
 Das AddOn Google Places für REDAXO 5 ermöglicht die Nutzung der Google Places API. Es ist möglich, Informationen wie
 z.B. Bewertungen (Reviews), Geodaten, Bilder, Öffnungszeiten, etc. zu einem Eintrag in Google Maps via API-Aufruf zu
-erhalten, in der eigenen Datenbank zu speichern und auszugeben.
+erhalten und Reviews in der eigenen Datenbank zu speichern und auszugeben.
 
 ![splashscreen](https://user-images.githubusercontent.com/16903055/140534021-cd09791c-9dc5-4c11-8f40-d16e72b43cf8.jpg)
 

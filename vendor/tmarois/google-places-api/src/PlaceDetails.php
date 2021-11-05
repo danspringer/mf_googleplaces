@@ -20,7 +20,7 @@ class PlaceDetails extends Places
     {
         parent::__construct($client);
 
-        $this->setOptions(['placeid' => $placeId]);
+        $this->setOptions(['placeid' => $placeId, 'language'=> 'de']);
     }
 
 

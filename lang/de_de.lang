@@ -1,3 +1,20 @@
 mf_googleplaces_title = Google Places
 mf_googleplaces_information = Info
 mf_googleplaces_config = Konfiguration
+mf_googleplaces_help = Hilfe
+mf_googleplaces_start = Start
+mf_googleplaces_reviews = Reviews
+mf_googleplaces_cron_title = Google Places: Reviews per API-Call aktualisieren
+
+mf_googleplaces_label_profile_photo_url = Profilbild
+mf_googleplaces_label_author_name = Name
+mf_googleplaces_label_author = Verfasser*in
+mf_googleplaces_label_rating = Bewertung
+mf_googleplaces_label_text = Text
+mf_googleplaces_label_time = Datum
+
+mf_googleplaces_docs_intro = Zusammenfassung
+mf_googleplaces_docs_google_api = Direkt über die Google Places API
+mf_googleplaces_docs_db = Über die eigene DB
+mf_googleplaces_docs_credits = Credits
+mf_googleplaces_docs_modules = Beispiel-Module
