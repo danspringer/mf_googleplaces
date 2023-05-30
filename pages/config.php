@@ -2,7 +2,6 @@
 $content = '';
 $buttons = '';
 
-dump(gplace::getPlaceDetails());
 // Einstellungen speichern
 if (rex_post('formsubmit', 'string') == '1') {
     $this->setConfig(rex_post('baseconfig', [
