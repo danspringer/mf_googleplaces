@@ -17,6 +17,7 @@ $list->removeColumn('id');
 $list->removeColumn('language');
 $list->removeColumn('author_name');
 $list->removeColumn('profile_photo_url');
+$list->removeColumn('profile_photo_base64');
 $list->removeColumn('author_url');
 $list->removeColumn('createdate_addon');
 $list->removeColumn('google_place_id');

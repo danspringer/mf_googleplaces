@@ -2,7 +2,7 @@
 $content = '';
 $buttons = '';
 
-
+dump(gplace::getPlaceDetails());
 // Einstellungen speichern
 if (rex_post('formsubmit', 'string') == '1') {
     $this->setConfig(rex_post('baseconfig', [
@@ -12,8 +12,7 @@ if (rex_post('formsubmit', 'string') == '1') {
     ]));
 	
     echo rex_view::success('Einstellungen gespeichert');
-}	
-	
+}
 
 $content .= '<fieldset>';
 

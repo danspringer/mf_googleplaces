@@ -1,7 +1,7 @@
 # Alle hier gesetzten Werte können über $addon->getProperty($key) abgefragt werden
 
 package: mf_googleplaces
-version: '2.2'
+version: '2.3'
 author: 'Medienfeuer, Daniel Springer'
 compile: 0
 

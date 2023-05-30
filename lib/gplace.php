@@ -7,17 +7,32 @@
  */
 class gplace
 {
-    /**
-     * Bindet die Vendors ein - als Funktion, weil es sonst in der boot.php immer geladen werden müsste und das ist nicht nötig
-     * @author Daniel Springer
-     */
-    public static function includeVendors()
-    {
-        include_once rex_path::addon('mf_googleplaces', 'vendor/guzzlehttp/guzzle/src/functions.php');
-        include_once rex_path::addon('mf_googleplaces', 'vendor/guzzlehttp/psr7/src/functions.php');
-        include_once rex_path::addon('mf_googleplaces', 'vendor/guzzlehttp/promises/src/functions.php');
 
-    } // EoF
+
+    /**
+     * @return array
+     * https://developers.google.com/maps/documentation/places/web-service/details?hl=de
+     */
+    public static function gapi() {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://maps.googleapis.com/maps/api/place/details/json?place_id='.rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id').'&key='.rex_addon::get('mf_googleplaces')->getConfig('gmaps-api-key').'&reviews_no_translations=true&reviews_sort=newest',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+        ));
+        $response = curl_exec($curl);
+        $response = json_decode($response);
+        $response = json_decode(json_encode($response->result), true);
+        curl_close($curl);
+        return $response;
+    }
+
 
     /**
      * Ruft Details zu einem Google Place direkt über die Google-PLaces-API ab.
@@ -27,19 +42,7 @@ class gplace
      */
     public static function get(string $qry = "")
     {
-        gplace::includeVendors();
-        $place = new gplace;
-        $place->apiKey = rex_addon::get('mf_googleplaces')->getConfig('gmaps-api-key');
-        $place->placeId = rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id');
-
-        $client = new \GooglePlaces\Client($place->apiKey);
-        $response = $client->placeDetails($place->placeId)->request();
-        if ($qry == "") {
-            return $response['result'];
-        } else {
-            return $response['result'][$qry];
-        }
-
+        return self::getFromGoogle($qry);
     } // EoF
 
     /**
@@ -50,17 +53,11 @@ class gplace
      */
     public static function getFromGoogle(string $qry = "")
     {
-        gplace::includeVendors();
-        $place = new gplace;
-        $place->apiKey = rex_addon::get('mf_googleplaces')->getConfig('gmaps-api-key');
-        $place->placeId = rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id');
-
-        $client = new \GooglePlaces\Client($place->apiKey);
-        $response = $client->placeDetails($place->placeId)->request('DE');
+        $response = self::gapi();
         if ($qry == "") {
             return $response;
         } else {
-            return $response['result'][$qry];
+            return $response[$qry];
         }
 
     } // EoF
@@ -70,14 +67,18 @@ class gplace
      * @return array | false
      * @author Daniel Springer
      */
-    public static function getPlaceDetails()
+    public static function getPlaceDetails($qry = "")
     {
         $sql = rex_sql::factory();
         $sql->setQuery('SELECT api_response_json FROM mf_googleplaces_place_details WHERE place_id = :place_id', ["place_id" => rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id')]);
         if($sql->getRows() > 0) {
             $response = $sql->getArray();
             $response = rex_var::toArray($response[0]['api_response_json']);
-            return $response['result'];
+            if ($qry == "") {
+                return $response;
+            } else {
+                return $response[$qry];
+            }
         }
         return false;
     } // EoF getPlaceDetails
@@ -89,15 +90,8 @@ class gplace
      */
     public static function getAllReviewsFromGoogle()
     {
-        gplace::includeVendors();
         $qry = 'reviews';
-        $place = new gplace;
-        $place->apiKey = rex_addon::get('mf_googleplaces')->getConfig('gmaps-api-key');
-        $place->placeId = rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id');
-
-        $client = new \GooglePlaces\Client($place->apiKey);
-        $response = $client->placeDetails($place->placeId)->request();
-
+        $response = self::gapi();
         return $response['result'][$qry];
     } // EoF
 
@@ -176,9 +170,8 @@ class gplace
      */
     public static function updateReviewsDB()
     {
-        gplace::includeVendors();
-        $googleReviews  = gplace::getAllReviewsFromGoogle();
         $googlePlace    = gplace::getFromGoogle();
+        $googleReviews  = $googlePlace['reviews'];
         $googlePlaceId  = rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id');
 
         foreach ($googleReviews as $gr) {
