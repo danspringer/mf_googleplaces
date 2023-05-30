@@ -20,7 +20,7 @@ class gplace
     } // EoF
 
     /**
-     * Ruft Details zu einem Google Place ab.
+     * Ruft Details zu einem Google Place direkt über die Google-PLaces-API ab.
      * @param string $qry
      * @return array | string
      * @author Daniel Springer
@@ -64,6 +64,23 @@ class gplace
         }
 
     } // EoF
+
+    /**
+     * Ruft Details zu einem Google Place über die eigene DB ab.
+     * @return array | false
+     * @author Daniel Springer
+     */
+    public static function getPlaceDetails()
+    {
+        $sql = rex_sql::factory();
+        $sql->setQuery('SELECT api_response_json FROM mf_googleplaces_place_details WHERE place_id = :place_id', ["place_id" => rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id')]);
+        if($sql->getRows() > 0) {
+            $response = $sql->getArray();
+            $response = rex_var::toArray($response[0]['api_response_json']);
+            return $response['result'];
+        }
+        return false;
+    } // EoF getPlaceDetails
 
     /**
      * Ruft Reviews zu einem Google Place direkt über die Google API ab (wsl. limitiert auf die letzten 5).
@@ -110,11 +127,11 @@ class gplace
             $response[$id]['author_url'] = $row->getValue('author_url');
             $response[$id]['language'] = $row->getValue('language');
             $response[$id]['profile_photo_url'] = $row->getValue('profile_photo_url');
+            $response[$id]['profile_photo_base64'] = $row->getValue('profile_photo_base64');
             $response[$id]['rating'] = $row->getValue('rating');
             $response[$id]['text'] = $row->getValue('text');
             $response[$id]['profile_photo_url'] = $row->getValue('profile_photo_url');
             $response[$id]['time'] = $row->getValue('time');
-            $response[$id]['profile_photo_url'] = $row->getValue('profile_photo_url');
             $response[$id]['createdate_addon'] = $row->getValue('createdate_addon');
             $response[$id]['google_place_id'] = $row->getValue('google_place_id');
         }
@@ -160,8 +177,9 @@ class gplace
     public static function updateReviewsDB()
     {
         gplace::includeVendors();
-        $googleReviews = gplace::getAllReviewsFromGoogle();
-        $googlePlaceId = gplace::get('place_id');
+        $googleReviews  = gplace::getAllReviewsFromGoogle();
+        $googlePlace    = gplace::getFromGoogle();
+        $googlePlaceId  = rex_addon::get('mf_googleplaces')->getConfig('gmaps-location-id');
 
         foreach ($googleReviews as $gr) {
             $googleTime = (string)$gr['time'];
@@ -176,6 +194,11 @@ class gplace
                 // Wenn Review noch nicht existiert, in DB schreiben
                 $objDateTime = new DateTime('NOW');
                 $dateTime = $objDateTime->format('Y-m-d H:i:s');
+
+                $gr_profile_photo_base64 = file_get_contents($gr['profile_photo_url']);
+                if ($gr_profile_photo_base64 !== false){
+                    $gr_profile_photo_base64 = base64_encode($gr_profile_photo_base64);
+                }
                 $sql = rex_sql::factory();
                 $sql->setDebug(false);
                 $sql->setTable('mf_googleplaces_reviews');
@@ -184,12 +207,11 @@ class gplace
                         'author_name' => $gr['author_name'],
                         'author_url' => $gr['author_url'],
                         'language' => $gr['language'],
-                        'profile_photo_url' => $gr['profile_photo_url'],
                         'rating' => $gr['rating'],
                         'text' => $gr['text'],
-                        'profile_photo_url' => $gr['profile_photo_url'],
                         'time' => $gr['time'],
                         'profile_photo_url' => $gr['profile_photo_url'],
+                        'profile_photo_base64' => $gr_profile_photo_base64,
                         'google_place_id' => $googlePlaceId,
                         'createdate_addon' => $dateTime
                     ]
@@ -199,6 +221,22 @@ class gplace
                 #echo 'Review existiert in DB bereits';
             }
         }
+
+        $sql_place = rex_sql::factory();
+        $sql_place->setTable('mf_googleplaces_place_details');
+        $sql_place->setValues(
+            [
+                'updatedate' => date('Y-m-d H:i:s'),
+                'place_id' => $googlePlaceId,
+                'api_response_json' => json_encode($googlePlace)
+            ]
+        );
+        $sql_place->setWhere([
+            'place_id' => $googlePlaceId
+        ]);
+        // InsertOrUpdate braucht einen unique_key, mit dem das funktionieren kann. Dazu muss man die Tabelle entsprechend in der jeweiligen Spalte anpassen mit:
+        // ALTER TABLE `tabellen_name` ADD UNIQUE `unique_index`(`keys_die`, `unique_werden`, `sollen`, `key`);
+        $sql_place->insertOrUpdate();
 
         return true;
     } // EoF

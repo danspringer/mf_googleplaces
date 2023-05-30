@@ -1,7 +1,7 @@
 <?php
 date_default_timezone_set('Europe/Berlin');
-$reviews = gplace::getAllReviews('time DESC');
-
+$reviews    = gplace::getAllReviews('time DESC');
+$gplace     = gplace::getPlaceDetails();
 $googleLogo =
     '
 <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
@@ -78,6 +78,10 @@ $googleLogoBig =
         </div>
         <?php
         foreach ($reviews as $review){
+            $profile_photo = $review['profile_photo_url'];
+            if($review['profile_photo_base64'] != "") {
+                $profile_photo = 'data:image/jpg;base64,'.$review['profile_photo_base64'];
+            }
             $stars = intval($review['rating']);
             $starList = '';
             $timestamp = $review['time'];
@@ -93,7 +97,7 @@ $googleLogoBig =
                     <div class="media">
                       <div class="media-left">
                         <a href="'.$review['author_url'].'" target="_blank" rel="nofollow noopener">
-                          <img class="media-object" src="'.$review['profile_photo_url'].'" width="44" alt="'.$review['author_name'].'">
+                          <img class="media-object" src="'.$profile_photo.'" width="44" alt="'.$review['author_name'].'">
                         </a>
                       </div>
                       <div class="media-body">
